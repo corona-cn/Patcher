@@ -25,12 +25,12 @@ value class Process(val memorySegment: MemorySegment) {
 
         private const val PROCESS_QUERY_INFORMATION = 0x0400
 
-        /* Process Access Combinations */
+        /* Process Access Combination */
         private const val PROCESS_ALL_ACCESS = 0x1F0FFF
 
         private const val PROCESS_STANDARD_RIGHTS = PROCESS_VM_READ or PROCESS_VM_WRITE or PROCESS_VM_OPERATION or PROCESS_QUERY_INFORMATION
 
-        /* Process Entry Offsets */
+        /* Process Entry Offset */
         private const val OFFSET_DW_SIZE = 0L
 
         private const val OFFSET_TH32_PROCESS_ID = 8L

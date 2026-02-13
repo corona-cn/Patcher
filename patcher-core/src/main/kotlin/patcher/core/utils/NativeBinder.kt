@@ -29,12 +29,12 @@ object NativeBinder {
     val kernel32: SymbolLookup = SymbolLookup.libraryLookup("kernel32", sharedArena)
 
 
-    /* === PUBLIC BINDING BUILDER === */
+    /* === PUBLIC BINDING BUILDERS === */
     /**
      * DSL builder for FunctionDescriptor creation
      */
     class FunctionDescriptorBuilder {
-        /* === PROVIDED VALUE LAYOUT === */
+        /* === PROVIDED VALUE LAYOUTS === */
         /* Primitive */
         /**
          * 1-byte signed integer, byte order dependent on JVM

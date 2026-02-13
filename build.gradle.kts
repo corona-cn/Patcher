@@ -26,7 +26,7 @@ allprojects {
 /* === SUBPROJECT CONFIGURATION === */
 subprojects {
     // Ensure jdk version
-    val jdkVersion = 21
+    val jdkVersion = 25
 
     // Configure java encoding and compatibility
     tasks.withType<JavaCompile>().configureEach {
