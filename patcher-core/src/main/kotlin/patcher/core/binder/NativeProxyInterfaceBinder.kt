@@ -6,12 +6,50 @@ import java.lang.foreign.*
 import java.lang.invoke.*
 
 /**
- * Proxy-based native interface binder with direct MethodHandle invocation.
- *
  * Provides dynamic implementation of native interface methods using JDK Proxy
- * and direct MethodHandle calls. Eliminates reflection overhead by using
- * MethodHandle.invokeExact() for optimal performance while maintaining
- * the convenience of interface-based native function binding.
+ * and direct MethodHandle calls.
+ *
+ * This object serves as the primary entry point for creating proxy instances that delegate
+ * interface method calls to native functions. It eliminates reflection overhead by using
+ * **MethodHandle.invoke()** for optimal performance while maintaining the convenience of
+ * interface-based native function binding.
+ *
+ * The binder automatically caches both proxy instances and method handles for repeated use,
+ * ensuring minimal performance impact on subsequent bindings. All native function lookups
+ * are performed through the provided [SymbolLookup] instance, with proper error handling
+ * for missing symbols.
+ *
+ * The binder supports all Java primitive types, [String], and [MemorySegment] as both
+ * parameters and return values. Complex native types should be represented as
+ * [MemorySegment] and managed through the Foreign Function API.
+ *
+ * Example usage with Windows Kernel32 interface:
+ * ```
+ * interface Kernel32 {
+ *     fun GetCurrentProcessId(): Int
+ *     fun GetLastError(): Int
+ *     fun GetStdHandle(nStdHandle: Int): MemorySegment
+ *     fun OpenProcess(dwDesiredAccess: Int, bInheritHandle: Int, dwProcessId: Long): MemorySegment
+ *     fun CloseHandle(hObject: MemorySegment): Int
+ *     fun ReadProcessMemory(
+ *         hProcess: MemorySegment,
+ *         lpBaseAddress: MemorySegment,
+ *         lpBuffer: MemorySegment,
+ *         nSize: Long,
+ *         lpNumberOfBytesRead: MemorySegment
+ *     ): Int
+ * }
+ *
+ * // Create proxy instance bound to kernel32 library
+ * val kernel32 = NativeProxyInterfaceBinder.bind<Kernel32>(NativeFunctionBinder.kernel32)
+ *
+ * // Use native functions directly through the proxy
+ * val processId = kernel32.GetCurrentProcessId()
+ * val processHandle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, 0, processId.toLong())
+ *
+ * // ... perform operations
+ * kernel32.CloseHandle(processHandle)
+ * ```
  *
  * @see NativeFunctionBinder
  */

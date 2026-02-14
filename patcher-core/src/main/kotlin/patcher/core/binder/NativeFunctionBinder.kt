@@ -6,22 +6,73 @@ import java.nio.*
 
 /**
  * Native function binder for Windows API.
- * Provides DSL-style binding for MethodHandle creation.
+ *
+ * Provides a DSL-style fluent API for creating [MethodHandle] instances that bind to native
+ * functions. This object serves as the central entry point for all native function binding
+ * operations, offering pre-configured symbol lookups for common Windows libraries and
+ * a builder pattern for constructing function descriptors.
+ *
+ * The binder handles the complexity of the Java Foreign Function API (FFI) by providing
+ * a more concise and readable syntax for native function declarations. It manages memory
+ * arenas, symbol lookups, and method handle creation automatically.
+ *
+ * The primary use case is binding to Windows API functions:
+ *
+ * ```
+ * // Bind to user32!MessageBoxW
+ * val user32 = SymbolLookup.libraryLookup("user32", NativeFunctionBinder.sharedArena)
+ * val messageBox = NativeFunctionBinder.bind(user32, "MessageBoxW") {
+ *     params(       // HWND hWnd
+ *         address,  // LPCWSTR lpText
+ *         address,  // LPCWSTR lpCaption
+ *         address,  // UINT uType
+ *         uint
+ *     )
+ *     returns(int)  // int return value
+ * }
+ *
+ * // Display a message box with UTF-16 encoding
+ * Arena.ofConfined().use { arena ->
+ *     val text = arena.allocateFrom("Hello World", StandardCharsets.UTF_16LE)
+ *     val caption = arena.allocateFrom("Native Dialog", StandardCharsets.UTF_16LE)
+ *     val result = messageBox.invokeExact(
+ *         MemorySegment.NULL,  // hWnd (no parent window)
+ *         text,                // lpText
+ *         caption,             // lpCaption
+ *         0                    // uType (MB_OK)
+ *     ) as Int
+ *     println("MessageBox returned: $result")  // 1 = IDOK
+ * }
+ * ```
+ *
+ * For libraries other than kernel32, use the generic [bind] function:
+ *
+ * ```
+ * // Bind to user32!MessageBoxW (alternative approach)
+ * val user32 = SymbolLookup.libraryLookup("user32", NativeFunctionBinder.sharedArena)
+ * val messageBox = NativeFunctionBinder.bind(user32, "MessageBoxW") {
+ *     params(address, address, address, uint)
+ *     returns(int)
+ * }
+ * ```
  */
 object NativeFunctionBinder {
-    /* === PUBLIC LINKERS & ARENAS & LIBRARIES === */
+    /* === PUBLIC NATIVE COMPONENTS === */
+    /* Linker */
     /**
      * Native linker for downcall handles
      */
     @JvmField
     val nativeLinker: Linker = Linker.nativeLinker()
 
+    /* Arena */
     /**
      * Shared arena for library lookups
      */
     @JvmField
     val sharedArena: Arena = Arena.ofShared()
 
+    /* Native Library */
     /**
      * Kernel32 library symbol lookup
      */
@@ -162,7 +213,7 @@ object NativeFunctionBinder {
         val c_size_t: ValueLayout.OfLong = ValueLayout.JAVA_LONG
 
 
-        /* === INTERNAL STATES === */
+        /* === INTERNAL BUILDER COMPONENTS === */
         /**
          * Mutable list of argument layouts
          */
