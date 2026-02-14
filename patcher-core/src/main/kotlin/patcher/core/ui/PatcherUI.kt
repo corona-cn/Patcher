@@ -1,6 +1,6 @@
 @file:Suppress("Unused", "Nothing_to_inline")
 package patcher.core.ui
-import patcher.core.utils.*
+import patcher.core.impl.*
 
 import kotlinx.coroutines.*
 import kotlin.concurrent.*
@@ -309,7 +309,7 @@ class PatcherUI : JFrame("Patcher - Memory Patch Tool") {
                         return@withContext "❌ 未找到进程: $processName"
                     }
 
-                    val handle = Process.openHandle(pid) ?: return@withContext "❌ 无法打开进程，请以管理员身份运行"
+                    val handle = try { Process.openHandle(pid) } catch (e: Throwable) { return@withContext "❌ 无法打开进程，请以管理员身份运行" }
                     val patcher = MemoryPatcher.fromHandle(handle)
 
                     currentProcess = Process.getAllProcesses().find { it.getPid() == pid }
